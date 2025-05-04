@@ -23,7 +23,10 @@ export const Calendar = () => {
     <div>
       {data && <Display events={data} />}
       {data?.map((event) => (
-        <div key={event.uid}>{event.summary}</div>
+        <div key={event.uid}>
+          {event.summary}
+          {event.startDate.toJSDate().toDateString()}
+        </div>
       ))}
     </div>
   );
