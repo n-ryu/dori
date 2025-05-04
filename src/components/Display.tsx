@@ -1,5 +1,10 @@
 import { Canvas } from "@react-three/fiber";
+import ICAL from "ical.js";
 
-export const Display = () => {
+interface Props {
+  events: ICAL.Event[];
+}
+
+export const Display = ({ events }: Props) => {
   return <Canvas />;
 };

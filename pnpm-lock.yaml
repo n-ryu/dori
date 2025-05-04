@@ -11,6 +11,12 @@ dependencies:
   '@react-three/fiber':
     specifier: ^9.1.2
     version: 9.1.2(@types/react@19.1.2)(react-dom@19.1.0)(react@19.1.0)(three@0.175.0)
+  '@tanstack/react-query':
+    specifier: ^5.75.1
+    version: 5.75.1(react@19.1.0)
+  ical.js:
+    specifier: ^2.1.0
+    version: 2.1.0
   react:
     specifier: ^19.0.0
     version: 19.1.0
@@ -881,6 +887,19 @@ packages:
     dev: true
     optional: true
 
+  /@tanstack/query-core@5.75.0:
+    resolution: {integrity: sha512-rk8KQuCdhoRkzjRVF3QxLgAfFUyS0k7+GCQjlGEpEGco+qazJ0eMH6aO1DjDjibH7/ik383nnztua3BG+lOnwg==}
+    dev: false
+
+  /@tanstack/react-query@5.75.1(react@19.1.0):
+    resolution: {integrity: sha512-tN+gG+eXCHYm+VpmdXUP1rfE9LUrRzgYozTkBZtJV1/WFM3vwWNKQC8G6b2RKcs+2cPg+hdToZHZfjL3bF4yIQ==}
+    peerDependencies:
+      react: ^18 || ^19
+    dependencies:
+      '@tanstack/query-core': 5.75.0
+      react: 19.1.0
+    dev: false
+
   /@tweenjs/tween.js@23.1.3:
     resolution: {integrity: sha512-vJmvvwFxYuGnF2axRtPYocag6Clbb5YS7kLL+SO/TeVFzHqDIWrNKYtcsPMibjDx9O+bu+psAy9NKfWklassUA==}
     dev: false
@@ -1597,6 +1616,10 @@ packages:
 
   /hls.js@1.6.2:
     resolution: {integrity: sha512-rx+pETSCJEDThm/JCm8CuadcAC410cVjb1XVXFNDKFuylaayHk1+tFxhkjvnMDAfqsJHxZXDAJ3Uc2d5xQyWlQ==}
+    dev: false
+
+  /ical.js@2.1.0:
+    resolution: {integrity: sha512-BOVfrH55xQ6kpS3muGvIXIg2l7p+eoe12/oS7R5yrO3TL/j/bLsR0PR+tYQESFbyTbvGgPHn9zQ6tI4FWyuSaQ==}
     dev: false
 
   /ieee754@1.2.1:
