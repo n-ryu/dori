@@ -2,7 +2,7 @@ import ical from "ical-generator";
 import fs from "fs"; // Node.js 파일 시스템 모듈
 
 // --- 설정 ---
-const numberOfEvents = 50; // 생성할 총 이벤트 수
+const numberOfEvents = 500; // 생성할 총 이벤트 수
 const outputFileName = "./public/mock_calendar_data.ics"; // 저장할 파일 이름
 const defaultTimezone = "Asia/Seoul"; // 기본 시간대
 const otherTimezones = ["America/New_York", "Europe/London", "UTC"]; // 사용할 다른 시간대 목록
