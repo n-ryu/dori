@@ -11,7 +11,6 @@ import { useControls } from "leva";
 import dayjs from "dayjs";
 import { uuidToColor } from "../utils/uuidToColor";
 import { Canvas } from "@react-three/fiber";
-import { neonizeHexColor } from "../utils/neonizeColor";
 
 const normalize = (target: number, upper: number, lower: number) =>
   (target - lower) / (upper - lower);
@@ -198,11 +197,9 @@ export const Display = ({ events }: Props) => {
             }}
           >
             <meshPhongMaterial
-              color={
-                hoveredEventId?.uid === event.uid
-                  ? neonizeHexColor(event.color)
-                  : event.color
-              }
+              color={event.color}
+              emissive={event.color}
+              emissiveIntensity={hoveredEventId?.uid === event.uid ? 0.5 : 0}
               flatShading
             />
           </mesh>
