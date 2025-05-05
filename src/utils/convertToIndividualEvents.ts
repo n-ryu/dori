@@ -7,12 +7,15 @@ export const convertToIndividualEvents = (
   end: Date
 ): IndividualEvent[] =>
   events.flatMap((event) => {
-    if (!event.isRecurring())
-      return {
-        event,
-        startDate: event.startDate,
-        endDate: event.endDate,
-      };
+    if (!event.isRecurring()) {
+      if (event.startDate.toJSDate() >= start && event.endDate.toJSDate() < end)
+        return {
+          event,
+          startDate: event.startDate,
+          endDate: event.endDate,
+        };
+      else return [];
+    }
 
     const iterator = event.iterator();
     const arr = [];
