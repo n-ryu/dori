@@ -7,49 +7,70 @@ import { CameraLight } from "./CameraLight";
 import { createRibbonGeometry } from "../utils/createRibbonGeometry";
 import { convertToIndividualEvents } from "../utils/convertToIndividualEvents";
 import { computeOffset } from "../utils/computeOffset";
+import { useControls } from "leva";
+import { date } from "@leva-ui/plugin-dates";
+import dayjs from "dayjs";
+import { uuidToColor } from "../utils/uuidToColor";
 
-const NUMBER_OF_VERTICES = 365 * 10;
-const AXIS = new Vector3(0, 0, 1);
-const WIDTH = 0.1;
-const THICKNESS = 0.01;
-const GAP = 0.01;
 const normalize = (target: number, upper: number, lower: number) =>
   (target - lower) / (upper - lower);
 
 interface Props {
   events: ICAL.Event[];
-  start?: Date;
-  end?: Date;
-  period?: number | "month" | "week";
 }
 
-export const Display = ({
-  events,
-  start = new Date("2025-01-01"),
-  end = new Date("2026-01-01"),
-  period = "week",
-}: Props) => {
-  const periodInDate = useMemo(
-    () => (period === "week" ? 7 : period === "month" ? 30 : period),
-    [period]
-  );
-  const rangeInDate = useMemo(
-    () => (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-    [start, end]
+export const Display = ({ events }: Props) => {
+  const global = useControls("global", {
+    background: "#eeeeee",
+  });
+
+  const { numberOfVertices } = useControls("vertex", {
+    numberOfVertices: 365 * 10,
+  });
+
+  const shape = useControls("shape", {
+    radius: 2,
+    length: 20,
+    axis: { value: [0, 0, 1], editable: false }, // TODO: axis 에 상대적이어야 하는 값들이 매직 넘버처럼 사용되는 곳들이 있음.
+  });
+
+  const ribbon = useControls("ribbon", {
+    height: 0.1,
+    thickness: 0.01,
+    gap: 0.01,
+    minVertices: 10,
+  });
+
+  const dates = useControls("date", {
+    today: date({ date: new Date() }),
+    range: { value: 365, step: 1, title: "range(days)" },
+    period: { value: 7, step: 1, title: "period(days)" },
+  });
+
+  const [start, end] = useMemo(
+    () => [
+      dayjs(dates.today.date)
+        .add(-dates.range / 2, "day")
+        .toDate(),
+      dayjs(dates.today.date)
+        .add(dates.range / 2, "day")
+        .toDate(),
+    ],
+    [dates]
   );
 
   const axis = useMemo(
     () =>
       new LineCurve3(
-        AXIS.clone().multiplyScalar(20),
-        AXIS.clone().multiplyScalar(-20)
+        new Vector3(...shape.axis).clone().multiplyScalar(shape.length / 2),
+        new Vector3(...shape.axis).clone().multiplyScalar(-shape.length / 2)
       ),
-    []
+    [shape]
   );
 
   const helix = useMemo(
-    () => new Helix(axis, 2, rangeInDate / periodInDate),
-    [axis, rangeInDate, periodInDate]
+    () => new Helix(axis, shape.radius, dates.range / dates.period),
+    [axis, dates.range, dates.period, shape.radius]
   );
 
   const individualEvents = useMemo(
@@ -57,12 +78,7 @@ export const Display = ({
       computeOffset(
         convertToIndividualEvents(
           events.map((event) => {
-            event.color =
-              (event.isRecurring() ? "#ff" : "#00") +
-              Math.floor(Math.random() * 0xffff)
-                .toString(16)
-                .padStart(4, "0");
-
+            event.color = uuidToColor(event.uid);
             return event;
           }),
           start,
@@ -86,24 +102,24 @@ export const Display = ({
           end.getTime()
         );
         const NUMBER = Math.max(
-          Math.ceil(NUMBER_OF_VERTICES * (eventEnd - eventStart)),
-          20
+          Math.ceil(numberOfVertices * (eventEnd - eventStart)),
+          ribbon.minVertices
         );
 
         const geometry = createRibbonGeometry({
           helix,
           t1: eventStart,
           t2: eventEnd,
-          axis: AXIS,
+          axis: new Vector3(...shape.axis),
           division: NUMBER,
-          thickness: THICKNESS,
-          height: WIDTH,
-          offsetH: -WIDTH * (offset + 0.5) - offset * GAP,
+          thickness: ribbon.thickness,
+          height: ribbon.height,
+          offsetH: -ribbon.height * (offset + 0.5) - offset * ribbon.gap,
         });
 
         return { ...event, geometry };
       }),
-    [individualEvents, helix, start, end]
+    [individualEvents, helix, start, end, numberOfVertices, ribbon, shape.axis]
   );
 
   return (
@@ -111,17 +127,19 @@ export const Display = ({
       <Line
         color="#AAAAAA"
         lineWidth={1}
-        points={new Array(NUMBER_OF_VERTICES)
+        fog
+        points={new Array(numberOfVertices)
           .fill(0)
-          .map((_, i) => helix.getPoint(i / NUMBER_OF_VERTICES))}
+          .map((_, i) => helix.getPoint(i / numberOfVertices))}
       />
       {eventGeometries.map(({ geometry, event, recurrenceId }) => (
         <mesh key={event.uid + recurrenceId} geometry={geometry}>
           <meshPhongMaterial color={event.color} flatShading />
         </mesh>
       ))}
-      <color attach="background" args={["#EEEEEE"]} />
+      <color attach="background" args={[global.background]} />
       <ambientLight intensity={0.1} color="#FFFFFF" />
+      <fog attach="fog" args={[global.background, 0, shape.length / 2]} />
       <CameraLight />
       <TrackballControls />
     </>
