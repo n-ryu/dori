@@ -130,47 +130,84 @@ export const Display = ({ events }: Props) => {
     [setDates, getDates]
   );
 
-  const [hoveredEvent, setHoveredEvent] = useState<string>();
+  const [hoveredEventId, setHoveredEventId] = useState<string>();
+  const hoveredEvent = useMemo(
+    () => eventGeometries.find(({ event }) => event.uid === hoveredEventId),
+    [eventGeometries, hoveredEventId]
+  );
 
   return (
-    <Canvas onWheel={handleWheel}>
-      <Line
-        color="#AAAAAA"
-        lineWidth={1}
-        fog
-        points={new Array(numberOfVertices)
-          .fill(0)
-          .map((_, i) => helix.getPoint(i / numberOfVertices))}
-      />
-      {eventGeometries.map(({ geometry, event, recurrenceId }) => (
-        <mesh
-          key={event.uid + recurrenceId}
-          geometry={geometry}
-          onPointerEnter={() => {
-            setHoveredEvent(event.uid);
-          }}
-          onPointerLeave={() => {
-            setHoveredEvent(undefined);
-          }}
-        >
-          <meshPhongMaterial
-            color={
-              hoveredEvent === event.uid
-                ? neonizeHexColor(event.color)
-                : event.color
-            }
-            flatShading
-          />
-        </mesh>
-      ))}
-      <color attach="background" args={[global.background]} />
-      <ambientLight intensity={0.1} color="#FFFFFF" />
-      <fog
-        attach="fog"
-        args={[global.background, 0, shape.length / 2 / Math.SQRT2]}
-      />
-      <CameraLight />
-      <TrackballControls noZoom />
-    </Canvas>
+    <>
+      <div
+        style={{
+          position: "fixed",
+          zIndex: 100,
+          background: "#ffffffbb",
+          borderRadius: 5,
+          padding: 10,
+          top: 20,
+          left: 20,
+          boxShadow: "0 0 9px 0 #00000088",
+          fontFamily: "Arial",
+          fontSize: 12,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          width: 150,
+          opacity: hoveredEvent ? 1 : 0,
+          transition: "opacity 0.3s",
+        }}
+      >
+        {hoveredEvent && (
+          <>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>
+              {hoveredEvent.event.summary}
+            </div>
+            <div>{`${hoveredEvent.startDate.toString()} - \n${hoveredEvent.endDate.toString()}`}</div>
+            <div>{hoveredEvent.event.description}</div>
+            <div>{hoveredEvent.event.uid}</div>
+          </>
+        )}
+      </div>
+      <Canvas onWheel={handleWheel}>
+        <Line
+          color="#AAAAAA"
+          lineWidth={1}
+          fog
+          points={new Array(numberOfVertices)
+            .fill(0)
+            .map((_, i) => helix.getPoint(i / numberOfVertices))}
+        />
+        {eventGeometries.map(({ geometry, event, recurrenceId }) => (
+          <mesh
+            key={event.uid + recurrenceId}
+            geometry={geometry}
+            onPointerEnter={() => {
+              setHoveredEventId(event.uid);
+            }}
+            onPointerLeave={() => {
+              setHoveredEventId(undefined);
+            }}
+          >
+            <meshPhongMaterial
+              color={
+                hoveredEventId === event.uid
+                  ? neonizeHexColor(event.color)
+                  : event.color
+              }
+              flatShading
+            />
+          </mesh>
+        ))}
+        <color attach="background" args={[global.background]} />
+        <ambientLight intensity={0.1} color="#FFFFFF" />
+        <fog
+          attach="fog"
+          args={[global.background, 0, shape.length / 2 / Math.SQRT2]}
+        />
+        <CameraLight />
+        <TrackballControls noZoom />
+      </Canvas>
+    </>
   );
 };
