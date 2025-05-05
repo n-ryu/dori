@@ -41,8 +41,8 @@ export const Display = ({
   const axis = useMemo(
     () =>
       new LineCurve3(
-        AXIS.clone().multiplyScalar(50),
-        AXIS.clone().multiplyScalar(-50)
+        AXIS.clone().multiplyScalar(20),
+        AXIS.clone().multiplyScalar(-20)
       ),
     []
   );
@@ -53,7 +53,22 @@ export const Display = ({
   );
 
   const individualEvents = useMemo(
-    () => computeOffset(convertToIndividualEvents(events, start, end)),
+    () =>
+      computeOffset(
+        convertToIndividualEvents(
+          events.map((event) => {
+            event.color =
+              (event.isRecurring() ? "#ff" : "#00") +
+              Math.floor(Math.random() * 0xffff)
+                .toString(16)
+                .padStart(4, "0");
+
+            return event;
+          }),
+          start,
+          end
+        )
+      ),
     [events, start, end]
   );
 
@@ -102,7 +117,7 @@ export const Display = ({
       />
       {eventGeometries.map(({ geometry, event, recurrenceId }) => (
         <mesh key={event.uid + recurrenceId} geometry={geometry}>
-          <meshPhongMaterial flatShading />
+          <meshPhongMaterial color={event.color} flatShading />
         </mesh>
       ))}
       <color attach="background" args={["#EEEEEE"]} />
