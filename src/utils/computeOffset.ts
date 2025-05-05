@@ -1,24 +1,19 @@
-import ICAL from "ical.js";
+import { IndividualEvent } from "../types/types";
 
-interface OffsettedEvent {
-  event: { startDate: ICAL.Time; endDate: ICAL.Time };
+interface OffsettedEvent extends IndividualEvent {
   offset: number;
 }
 
-export const computeOffset = (
-  events: { startDate: ICAL.Time; endDate: ICAL.Time }[]
-): OffsettedEvent[] => {
-  let rest: { startDate: ICAL.Time; endDate: ICAL.Time }[] = [];
-  let targetEvents: { startDate: ICAL.Time; endDate: ICAL.Time }[] = events
-    .slice(0)
-    .sort((a, b) => {
-      const startDiff =
-        a.startDate.toJSDate().getTime() - b.startDate.toJSDate().getTime();
+export const computeOffset = (events: IndividualEvent[]): OffsettedEvent[] => {
+  let rest: IndividualEvent[] = [];
+  let targetEvents: IndividualEvent[] = events.slice(0).sort((a, b) => {
+    const startDiff =
+      a.startDate.toJSDate().getTime() - b.startDate.toJSDate().getTime();
 
-      if (startDiff !== 0) return startDiff;
+    if (startDiff !== 0) return startDiff;
 
-      return -a.endDate.toJSDate().getTime() + b.endDate.toJSDate().getTime();
-    });
+    return -a.endDate.toJSDate().getTime() + b.endDate.toJSDate().getTime();
+  });
   const result: OffsettedEvent[] = [];
 
   let offset = 0;
@@ -26,7 +21,7 @@ export const computeOffset = (
   while (result.length < events.length) {
     targetEvents.forEach((event) => {
       if (event.startDate.toJSDate() >= endDate) {
-        result.push({ event, offset });
+        result.push({ ...event, offset });
         endDate = event.endDate.toJSDate();
       } else {
         rest.push(event);

@@ -59,7 +59,7 @@ export const Display = ({
 
   const eventGeometries = useMemo(
     () =>
-      individualEvents.map(({ event, offset }) => {
+      individualEvents.map(({ offset, ...event }) => {
         const eventStart = normalize(
           event.startDate.toJSDate().getTime(),
           start.getTime(),
@@ -86,7 +86,7 @@ export const Display = ({
           offsetH: -WIDTH * (offset + 0.5) - offset * GAP,
         });
 
-        return { event, geometry };
+        return { ...event, geometry };
       }),
     [individualEvents, helix, start, end]
   );
@@ -100,9 +100,8 @@ export const Display = ({
           .fill(0)
           .map((_, i) => helix.getPoint(i / NUMBER_OF_VERTICES))}
       />
-      {eventGeometries.map(({ geometry }, i) => (
-        // TODO: 더 적절한 key 찾기. ex. uid + startDate
-        <mesh key={i} geometry={geometry}>
+      {eventGeometries.map(({ geometry, event, recurrenceId }) => (
+        <mesh key={event.uid + recurrenceId} geometry={geometry}>
           <meshPhongMaterial flatShading />
         </mesh>
       ))}

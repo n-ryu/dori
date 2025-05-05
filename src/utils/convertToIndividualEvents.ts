@@ -1,14 +1,15 @@
 import ICAL from "ical.js";
+import { IndividualEvent } from "../types/types";
 
 export const convertToIndividualEvents = (
   events: ICAL.Event[],
   start: Date,
   end: Date
-) =>
+): IndividualEvent[] =>
   events.flatMap((event) => {
     if (!event.isRecurring())
       return {
-        item: event,
+        event,
         startDate: event.startDate,
         endDate: event.endDate,
       };
@@ -16,10 +17,16 @@ export const convertToIndividualEvents = (
     const interator = event.iterator(ICAL.Time.fromJSDate(start));
     const arr = [];
     while (!interator.complete) {
-      // TODO: ICAL.Event 타입과 ICAL.RecurExpansion 에 대해 더 잘 이해할 필요가 있어보임.
       const next = interator.next();
-      if (!next || next.toJSDate() > end) break;
-      arr.push(event.getOccurrenceDetails(next));
+      if (!next || next.toJSDate() >= end) break;
+      const { item, startDate, endDate, recurrenceId } =
+        event.getOccurrenceDetails(next);
+      arr.push({
+        event: item,
+        startDate,
+        endDate,
+        recurrenceId,
+      });
     }
     return arr;
   });
