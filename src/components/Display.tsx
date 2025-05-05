@@ -6,11 +6,13 @@ import { Helix } from "../utils/Helix";
 import { CameraLight } from "./CameraLight";
 import { createRibbonGeometry } from "../utils/createRibbonGeometry";
 import { convertToIndividualEvents } from "../utils/convertToIndividualEvents";
+import { computeOffset } from "../utils/computeOffset";
 
 const NUMBER_OF_VERTICES = 365 * 10;
 const AXIS = new Vector3(0, 0, 1);
 const WIDTH = 0.1;
 const THICKNESS = 0.01;
+const GAP = 0.01;
 const normalize = (target: number, upper: number, lower: number) =>
   (target - lower) / (upper - lower);
 
@@ -39,8 +41,8 @@ export const Display = ({
   const axis = useMemo(
     () =>
       new LineCurve3(
-        AXIS.clone().multiplyScalar(100),
-        AXIS.clone().multiplyScalar(-100)
+        AXIS.clone().multiplyScalar(50),
+        AXIS.clone().multiplyScalar(-50)
       ),
     []
   );
@@ -51,13 +53,13 @@ export const Display = ({
   );
 
   const individualEvents = useMemo(
-    () => convertToIndividualEvents(events, start, end),
+    () => computeOffset(convertToIndividualEvents(events, start, end)),
     [events, start, end]
   );
 
   const eventGeometries = useMemo(
     () =>
-      individualEvents.map((event) => {
+      individualEvents.map(({ event, offset }) => {
         const eventStart = normalize(
           event.startDate.toJSDate().getTime(),
           start.getTime(),
@@ -70,7 +72,7 @@ export const Display = ({
         );
         const NUMBER = Math.max(
           Math.ceil(NUMBER_OF_VERTICES * (eventEnd - eventStart)),
-          5
+          20
         );
 
         const geometry = createRibbonGeometry({
@@ -81,7 +83,7 @@ export const Display = ({
           division: NUMBER,
           thickness: THICKNESS,
           height: WIDTH,
-          offsetH: -WIDTH / 2,
+          offsetH: -WIDTH * (offset + 0.5) - offset * GAP,
         });
 
         return { event, geometry };
@@ -98,13 +100,10 @@ export const Display = ({
           .fill(0)
           .map((_, i) => helix.getPoint(i / NUMBER_OF_VERTICES))}
       />
-      {eventGeometries.map(({ geometry, event }, i) => (
+      {eventGeometries.map(({ geometry }, i) => (
         // TODO: 더 적절한 key 찾기. ex. uid + startDate
         <mesh key={i} geometry={geometry}>
-          <meshPhongMaterial
-            color={event.isRecurring() ? "blue" : "red"}
-            flatShading
-          />
+          <meshPhongMaterial flatShading />
         </mesh>
       ))}
       <color attach="background" args={["#EEEEEE"]} />
