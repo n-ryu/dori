@@ -130,9 +130,17 @@ export const Display = ({ events }: Props) => {
     [setDates, getDates]
   );
 
-  const [hoveredEventId, setHoveredEventId] = useState<string>();
+  const [hoveredEventId, setHoveredEventId] = useState<{
+    uid: string;
+    recurrenceId?: ICAL.Time;
+  }>();
   const hoveredEvent = useMemo(
-    () => eventGeometries.find(({ event }) => event.uid === hoveredEventId),
+    () =>
+      eventGeometries.find(
+        ({ event, recurrenceId }) =>
+          event.uid === hoveredEventId?.uid &&
+          recurrenceId === hoveredEventId?.recurrenceId
+      ),
     [eventGeometries, hoveredEventId]
   );
 
@@ -183,7 +191,7 @@ export const Display = ({ events }: Props) => {
             key={event.uid + recurrenceId}
             geometry={geometry}
             onPointerEnter={() => {
-              setHoveredEventId(event.uid);
+              setHoveredEventId({ uid: event.uid, recurrenceId });
             }}
             onPointerLeave={() => {
               setHoveredEventId(undefined);
@@ -191,7 +199,7 @@ export const Display = ({ events }: Props) => {
           >
             <meshPhongMaterial
               color={
-                hoveredEventId === event.uid
+                hoveredEventId?.uid === event.uid
                   ? neonizeHexColor(event.color)
                   : event.color
               }

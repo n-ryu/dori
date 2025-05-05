@@ -1,6 +1,5 @@
 import ICAL from "ical.js";
 import { IndividualEvent } from "../types/types";
-import dayjs from "dayjs";
 
 export const convertToIndividualEvents = (
   events: ICAL.Event[],
@@ -15,14 +14,13 @@ export const convertToIndividualEvents = (
         endDate: event.endDate,
       };
 
-    const iterator = event.iterator(
-      ICAL.Time.fromJSDate(dayjs(start).startOf("day").toDate())
-    );
+    const iterator = event.iterator();
     const arr = [];
     while (!iterator.complete) {
       const next = iterator.next();
 
       if (!next || next.toJSDate() >= end) break;
+      if (next.toJSDate() < start) continue;
 
       const { item, startDate, endDate, recurrenceId } =
         event.getOccurrenceDetails(next);
