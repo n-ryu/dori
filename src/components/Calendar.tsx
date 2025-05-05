@@ -1,12 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { Display } from "./Display";
 import ICAL from "ical.js";
+import { useControls } from "leva";
 
 export const Calendar = () => {
+  const { icsUrl } = useControls("url", {
+    icsUrl: { value: "/mock.ics" },
+  });
+
   const { data } = useQuery({
     queryKey: ["ics"],
     queryFn: async () => {
-      const response = await fetch("/mock_calendar_data.ics");
+      const response = await fetch(
+        icsUrl.startsWith("https")
+          ? `https://corsproxy.io/?url=${encodeURIComponent(icsUrl)}` // TODO: not safe
+          : icsUrl
+      );
 
       const icalData = await response.text();
       const jcalData = ICAL.parse(icalData);
