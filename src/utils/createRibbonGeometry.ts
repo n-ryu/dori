@@ -25,7 +25,7 @@ export const createRibbonGeometry = ({
   offsetH = 0,
 }: Params) => {
   const positions: number[] = new Array(division).fill(0).flatMap((_, i) => {
-    const t = ((t2 - t1) * i) / division + t1;
+    const t = ((t2 - t1) * i) / (division - 1) + t1;
     const point = helix.getPoint(t);
     const tangent = helix.getTangent(t);
     const normal = axis.clone();
