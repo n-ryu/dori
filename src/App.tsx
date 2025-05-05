@@ -7,12 +7,9 @@ const queryClient = new QueryClient();
 export const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <div>
-        <h1>Dori</h1>
-        <Suspense fallback="loading...">
-          <Calendar />
-        </Suspense>
-      </div>
+      <Suspense fallback="loading...">
+        <Calendar />
+      </Suspense>
     </QueryClientProvider>
   );
 };
