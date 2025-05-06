@@ -42,7 +42,7 @@ export const Display = ({ events, onSelect }: Props) => {
     setPeriod((prev) => {
       const newPeriod = (dates.period - prev) * 0.1 + prev;
 
-      return Math.abs(newPeriod - dates.period) < 0.05
+      return Math.abs(newPeriod - dates.period) < dates.period * 0.005
         ? dates.period
         : newPeriod;
     });
@@ -105,14 +105,14 @@ export const Display = ({ events, onSelect }: Props) => {
 
   return (
     <>
-      <group position={[0, 0, -shape.length / 2]}>
+      <group>
         <Line
           color="#AAAAAA"
           lineWidth={1}
           fog
           points={new Array(numberOfVertices)
             .fill(0)
-            .map((_, i) => helix.getPoint(i / numberOfVertices))}
+            .map((_, i) => helix.getPoint(i / numberOfVertices - 0.5))}
         />
         {individualEvents.map(
           ({ event, startDate, endDate, offset, recurrenceId }) => {

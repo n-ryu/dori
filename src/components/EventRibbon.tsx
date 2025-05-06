@@ -36,7 +36,7 @@ export const EventRibbon = ({
   onPointerLeave,
   selected,
 }: Props) => {
-  const t1 = start / range;
+  const t1 = start / range - 0.5;
   const dt = (end - start) / range;
   const geometry = useMemo(() => {
     return createRibbonGeometry({
