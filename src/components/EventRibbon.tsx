@@ -15,6 +15,7 @@ interface Props {
   height: number;
   offsetT?: number;
   offsetH?: number;
+  color: string;
 }
 
 export const EventRibbon = ({
@@ -27,6 +28,7 @@ export const EventRibbon = ({
   thickness,
   height,
   offsetH,
+  color,
 }: Props) => {
   const t1 = start / range;
   const dt = (end - start) / range;
@@ -61,7 +63,7 @@ export const EventRibbon = ({
 
   return (
     <mesh ref={ref} geometry={geometry}>
-      <meshPhongMaterial flatShading color="#aaaaaa" />
+      <meshPhongMaterial flatShading color={color} />
     </mesh>
   );
 };

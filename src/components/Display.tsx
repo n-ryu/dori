@@ -162,6 +162,7 @@ export const Display = ({ events }: Props) => {
                 <EventRibbon
                   key={event.uid + recurrenceId}
                   helix={helix}
+                  color={event.color}
                   start={startMs}
                   end={endMs}
                   range={rangeMs}
