@@ -48,7 +48,7 @@ export const Display = ({ events, onSelect }: Props) => {
     const newLength =
       (shape.length - lerpRef.current.length) * 0.1 + lerpRef.current.length;
 
-    if (newPeriod < dates.period * 0.001) {
+    if (Math.abs(newPeriod - dates.period) < dates.period * 0.0001) {
       setPeriod(dates.period);
       setLength(shape.length);
       lerpRef.current = { period: dates.period, length: shape.length };
