@@ -1,11 +1,14 @@
 import Logo from "../assets/logo_full.svg?react";
+import { IndividualEvent } from "../types/types";
 import { FileInput } from "./FileInput";
+import { SelectedEventCard } from "./SelectedEventCard";
 
 interface Props {
+  selectedEvent?: IndividualEvent;
   onIcsChange: (data: string) => void;
 }
 
-export const Panel = ({ onIcsChange }: Props) => {
+export const Panel = ({ onIcsChange, selectedEvent }: Props) => {
   return (
     <div
       style={{
@@ -22,11 +25,14 @@ export const Panel = ({ onIcsChange }: Props) => {
         paddingInline: 25,
         paddingTop: 10,
         paddingBottom: 25,
-        borderRadius: "0 0 5px 5px",
+        borderRadius: "0 5px 5px 0",
         boxSizing: "border-box",
       }}
     >
-      <Logo height={48} />
+      <div>
+        <Logo height={48} />
+        <SelectedEventCard event={selectedEvent} />
+      </div>
       <FileInput onChange={onIcsChange} />
     </div>
   );

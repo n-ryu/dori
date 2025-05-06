@@ -16,6 +16,9 @@ interface Props {
   offsetT?: number;
   offsetH?: number;
   color: string;
+  onPointerEnter?: () => void;
+  onPointerLeave?: () => void;
+  selected?: boolean;
 }
 
 export const EventRibbon = ({
@@ -29,6 +32,9 @@ export const EventRibbon = ({
   height,
   offsetH,
   color,
+  onPointerEnter,
+  onPointerLeave,
+  selected,
 }: Props) => {
   const t1 = start / range;
   const dt = (end - start) / range;
@@ -62,8 +68,18 @@ export const EventRibbon = ({
   });
 
   return (
-    <mesh ref={ref} geometry={geometry}>
-      <meshPhongMaterial flatShading color={color} />
+    <mesh
+      ref={ref}
+      geometry={geometry}
+      onPointerEnter={onPointerEnter}
+      onPointerLeave={onPointerLeave}
+    >
+      <meshPhongMaterial
+        flatShading
+        color={color}
+        emissive={color}
+        emissiveIntensity={selected ? 0.4 : 0}
+      />
     </mesh>
   );
 };

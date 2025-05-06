@@ -1,7 +1,7 @@
 import ICAL from "ical.js";
 import { LineCurve3, Vector3 } from "three";
 import { Line, TrackballControls } from "@react-three/drei";
-import { useCallback, useMemo, useState, WheelEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, WheelEvent } from "react";
 import { Helix } from "../utils/Helix";
 import { CameraLight } from "./CameraLight";
 import { convertToIndividualEvents } from "../utils/convertToIndividualEvents";
@@ -11,12 +11,14 @@ import dayjs from "dayjs";
 import { uuidToColor } from "../utils/uuidToColor";
 import { Canvas } from "@react-three/fiber";
 import { EventRibbon } from "./EventRibbon";
+import { IndividualEvent } from "../types/types";
 
 interface Props {
   events: ICAL.Event[];
+  onSelect: (event?: IndividualEvent) => void;
 }
 
-export const Display = ({ events }: Props) => {
+export const Display = ({ events, onSelect }: Props) => {
   const global = useControls("global", {
     background: "#eeeeee",
   });
@@ -96,100 +98,73 @@ export const Display = ({ events }: Props) => {
     uid: string;
     recurrenceId?: ICAL.Time;
   }>();
-  const hoveredEvent = useMemo(
-    () =>
+
+  useEffect(() => {
+    onSelect(
       individualEvents.find(
-        ({ event, recurrenceId }) =>
-          event.uid === hoveredEventId?.uid &&
-          recurrenceId === hoveredEventId?.recurrenceId
-      ),
-    [individualEvents, hoveredEventId]
-  );
+        (event) =>
+          event.event.uid === hoveredEventId?.uid &&
+          event.recurrenceId === hoveredEventId?.recurrenceId
+      )
+    );
+  }, [onSelect, individualEvents, hoveredEventId]);
 
   const memoAxis = useMemo(() => new Vector3(...shape.axis), [shape.axis]);
 
   return (
-    <>
-      <div
-        style={{
-          position: "fixed",
-          zIndex: 100,
-          background: "#ffffffbb",
-          borderRadius: 5,
-          padding: 10,
-          top: 20,
-          left: 20,
-          boxShadow: "0 0 9px 0 #00000088",
-          fontFamily: "Arial",
-          fontSize: 12,
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          width: 150,
-          opacity: hoveredEvent ? 1 : 0,
-          transition: "opacity 0.3s",
-        }}
-      >
-        {hoveredEvent && (
-          <>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>
-              {hoveredEvent.event.summary}
-            </div>
-            <div>{`${hoveredEvent.startDate.toString()} - \n${hoveredEvent.endDate.toString()}`}</div>
-            <div>{hoveredEvent.event.description}</div>
-            <div>{hoveredEvent.event.uid}</div>
-          </>
-        )}
-      </div>
-      <Canvas onWheel={handleWheel}>
-        <group position={[0, 0, -shape.length / 2]}>
-          <Line
-            color="#AAAAAA"
-            lineWidth={1}
-            fog
-            points={new Array(numberOfVertices)
-              .fill(0)
-              .map((_, i) => helix.getPoint(i / numberOfVertices))}
-          />
-          {individualEvents.map(
-            ({ event, startDate, endDate, offset, recurrenceId }) => {
-              const rangeMs = dates.range * 1000 * 60 * 60 * 24;
-              const startMs =
-                startDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
-              const endMs =
-                endDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
-              return (
-                <EventRibbon
-                  key={event.uid + recurrenceId}
-                  helix={helix}
-                  color={event.color}
-                  start={startMs}
-                  end={endMs}
-                  range={rangeMs}
-                  axis={memoAxis}
-                  division={Math.max(
-                    Math.ceil((numberOfVertices * (startMs - endMs)) / rangeMs),
-                    ribbon.minVertices
-                  )}
-                  thickness={ribbon.thickness}
-                  height={ribbon.height}
-                  offsetH={
-                    -ribbon.height * (offset + 0.5) - offset * ribbon.gap
-                  }
-                />
-              );
-            }
-          )}
-        </group>
-        <color attach="background" args={[global.background]} />
-        <ambientLight intensity={0.1} color="#FFFFFF" />
-        <fog
-          attach="fog"
-          args={[global.background, 0, shape.length / 2 / Math.SQRT2]}
+    <Canvas onWheel={handleWheel}>
+      <group position={[0, 0, -shape.length / 2]}>
+        <Line
+          color="#AAAAAA"
+          lineWidth={1}
+          fog
+          points={new Array(numberOfVertices)
+            .fill(0)
+            .map((_, i) => helix.getPoint(i / numberOfVertices))}
         />
-        <CameraLight />
-        <TrackballControls noZoom />
-      </Canvas>
-    </>
+        {individualEvents.map(
+          ({ event, startDate, endDate, offset, recurrenceId }) => {
+            const rangeMs = dates.range * 1000 * 60 * 60 * 24;
+            const startMs =
+              startDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
+            const endMs =
+              endDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
+            return (
+              <EventRibbon
+                key={event.uid + recurrenceId}
+                helix={helix}
+                color={event.color}
+                start={startMs}
+                end={endMs}
+                range={rangeMs}
+                axis={memoAxis}
+                division={Math.max(
+                  Math.ceil((numberOfVertices * (startMs - endMs)) / rangeMs),
+                  ribbon.minVertices
+                )}
+                thickness={ribbon.thickness}
+                height={ribbon.height}
+                offsetH={-ribbon.height * (offset + 0.5) - offset * ribbon.gap}
+                selected={event.uid === hoveredEventId?.uid}
+                onPointerEnter={() => {
+                  setHoveredEventId({ uid: event.uid, recurrenceId });
+                }}
+                onPointerLeave={() => {
+                  setHoveredEventId(undefined);
+                }}
+              />
+            );
+          }
+        )}
+      </group>
+      <color attach="background" args={[global.background]} />
+      <ambientLight intensity={0.1} color="#FFFFFF" />
+      <fog
+        attach="fog"
+        args={[global.background, 0, shape.length / 2 / Math.SQRT2]}
+      />
+      <CameraLight />
+      <TrackballControls noZoom />
+    </Canvas>
   );
 };
