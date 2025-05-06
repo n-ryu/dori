@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import "./ControlSection.css";
 import dayjs from "dayjs";
-import { useControls } from "leva";
+import { Leva, useControls } from "leva";
 import { datesControl } from "../controls/controls";
+import { Toggle } from "./Toggle";
 
 export const ControlSection = () => {
   const [now, setNow] = useState<Date>(new Date());
+  const [showLeva, setShowLeva] = useState<boolean>(false);
 
-  const [{ today }, setDates, getDates] = useControls(...datesControl);
+  const [{ today }, setDates] = useControls(...datesControl);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
@@ -35,6 +37,9 @@ export const ControlSection = () => {
           Day
         </button>
       </div>
+      <label className="label">Advanced</label>
+      <Toggle value={showLeva} onChange={setShowLeva} />
+      <Leva hidden={!showLeva} />
     </div>
   );
 };
