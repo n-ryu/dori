@@ -1,7 +1,7 @@
 import ICAL from "ical.js";
 import { LineCurve3, Vector3 } from "three";
 import { Line, TrackballControls } from "@react-three/drei";
-import { useCallback, useEffect, useMemo, useState, WheelEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Helix } from "../utils/Helix";
 import { CameraLight } from "./CameraLight";
 import { convertToIndividualEvents } from "../utils/convertToIndividualEvents";
@@ -9,7 +9,6 @@ import { computeOffset } from "../utils/computeOffset";
 import { useControls } from "leva";
 import dayjs from "dayjs";
 import { uuidToColor } from "../utils/uuidToColor";
-import { Canvas } from "@react-three/fiber";
 import { EventRibbon } from "./EventRibbon";
 import { IndividualEvent } from "../types/types";
 import {
@@ -19,6 +18,7 @@ import {
   shapeControl,
   vertexControl,
 } from "../controls/controls";
+import { useFrame } from "@react-three/fiber";
 
 interface Props {
   events: ICAL.Event[];
@@ -34,7 +34,19 @@ export const Display = ({ events, onSelect }: Props) => {
 
   const ribbon = useControls(...ribbonControl);
 
-  const [dates, setDates, getDates] = useControls(...datesControl);
+  const [dates] = useControls(...datesControl);
+
+  const [period, setPeriod] = useState<number>(dates.period);
+
+  useFrame(() => {
+    setPeriod((prev) => {
+      const newPeriod = (dates.period - prev) * 0.1 + prev;
+
+      return Math.abs(newPeriod - dates.period) < 0.05
+        ? dates.period
+        : newPeriod;
+    });
+  });
 
   const axis = useMemo(() => new Vector3(0, 0, 1), []);
 
@@ -57,8 +69,8 @@ export const Display = ({ events, onSelect }: Props) => {
   );
 
   const helix = useMemo(
-    () => new Helix(axisCurve, shape.radius, dates.range / dates.period),
-    [axisCurve, dates.range, dates.period, shape.radius]
+    () => new Helix(axisCurve, shape.radius, dates.range / period),
+    [axisCurve, dates.range, period, shape.radius]
   );
 
   const individualEvents = useMemo(
@@ -74,13 +86,6 @@ export const Display = ({ events, onSelect }: Props) => {
         )
       ),
     [events, start, end]
-  );
-
-  const handleWheel = useCallback(
-    (e: WheelEvent) => {
-      setDates({ today: getDates("today") + e.deltaY * 1000 * 60 });
-    },
-    [setDates, getDates]
   );
 
   const [hoveredEventId, setHoveredEventId] = useState<{
@@ -99,7 +104,7 @@ export const Display = ({ events, onSelect }: Props) => {
   }, [onSelect, individualEvents, hoveredEventId]);
 
   return (
-    <Canvas onWheel={handleWheel}>
+    <>
       <group position={[0, 0, -shape.length / 2]}>
         <Line
           color="#AAAAAA"
@@ -152,6 +157,6 @@ export const Display = ({ events, onSelect }: Props) => {
       />
       <CameraLight />
       <TrackballControls noZoom />
-    </Canvas>
+    </>
   );
 };
