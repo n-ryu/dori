@@ -26,6 +26,7 @@ export const EventRibbon = ({
   division,
   thickness,
   height,
+  offsetH,
 }: Props) => {
   const t1 = start / range;
   const dt = (end - start) / range;
@@ -38,8 +39,9 @@ export const EventRibbon = ({
       division,
       thickness,
       height,
+      offsetH,
     });
-  }, [helix, dt, axis, division, thickness, height]);
+  }, [helix, dt, axis, division, thickness, height, offsetH]);
 
   const ref = useRef<Mesh>(null);
   const tRef = useRef<number>(t1);

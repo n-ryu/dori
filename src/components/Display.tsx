@@ -172,6 +172,9 @@ export const Display = ({ events }: Props) => {
                   )}
                   thickness={ribbon.thickness}
                   height={ribbon.height}
+                  offsetH={
+                    -ribbon.height * (offset + 0.5) - offset * ribbon.gap
+                  }
                 />
               );
             }
