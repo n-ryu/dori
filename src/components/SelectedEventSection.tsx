@@ -4,7 +4,7 @@ interface Props {
   event?: IndividualEvent;
 }
 
-export const SelectedEventCard = ({ event }: Props) => {
+export const SelectedEventSection = ({ event }: Props) => {
   return (
     <div
       style={{
@@ -24,7 +24,7 @@ export const SelectedEventCard = ({ event }: Props) => {
             style={{
               display: "grid",
               alignItems: "center",
-              gridTemplateColumns: "1fr auto",
+              gridTemplateColumns: "auto 1fr",
               fontWeight: 500,
             }}
           >

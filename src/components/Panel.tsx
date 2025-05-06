@@ -1,7 +1,8 @@
 import Logo from "../assets/logo_full.svg?react";
 import { IndividualEvent } from "../types/types";
+import { ControlSection } from "./ControlSection";
 import { FileInput } from "./FileInput";
-import { SelectedEventCard } from "./SelectedEventCard";
+import { SelectedEventSection } from "./SelectedEventSection";
 
 interface Props {
   selectedEvent?: IndividualEvent;
@@ -31,7 +32,8 @@ export const Panel = ({ onIcsChange, selectedEvent }: Props) => {
     >
       <div>
         <Logo height={48} />
-        <SelectedEventCard event={selectedEvent} />
+        <ControlSection />
+        <SelectedEventSection event={selectedEvent} />
       </div>
       <FileInput onChange={onIcsChange} />
     </div>

@@ -12,6 +12,13 @@ import { uuidToColor } from "../utils/uuidToColor";
 import { Canvas } from "@react-three/fiber";
 import { EventRibbon } from "./EventRibbon";
 import { IndividualEvent } from "../types/types";
+import {
+  datesControl,
+  globalControl,
+  ribbonControl,
+  shapeControl,
+  vertexControl,
+} from "../controls/controls";
 
 interface Props {
   events: ICAL.Event[];
@@ -19,32 +26,17 @@ interface Props {
 }
 
 export const Display = ({ events, onSelect }: Props) => {
-  const global = useControls("global", {
-    background: "#eeeeee",
-  });
+  const global = useControls(...globalControl);
 
-  const { numberOfVertices } = useControls("vertex", {
-    numberOfVertices: 365 * 10,
-  });
+  const { numberOfVertices } = useControls(...vertexControl);
 
-  const shape = useControls("shape", {
-    radius: 2,
-    length: 50,
-    axis: { value: [0, 0, 1], editable: false }, // TODO: axis 에 상대적이어야 하는 값들이 매직 넘버처럼 사용되는 곳들이 있음.
-  });
+  const shape = useControls(...shapeControl);
 
-  const ribbon = useControls("ribbon", {
-    height: 0.1,
-    thickness: 0.01,
-    gap: 0.01,
-    minVertices: 10,
-  });
+  const ribbon = useControls(...ribbonControl);
 
-  const [dates, setDates, getDates] = useControls("date", () => ({
-    today: new Date().getTime(),
-    range: { value: 365, step: 1, title: "range(days)" },
-    period: { value: 7, step: 1, title: "period(days)" },
-  }));
+  const [dates, setDates, getDates] = useControls(...datesControl);
+
+  const axis = useMemo(() => new Vector3(0, 0, 1), []);
 
   const [start, end] = useMemo(
     () => [
@@ -58,18 +50,15 @@ export const Display = ({ events, onSelect }: Props) => {
     [dates]
   );
 
-  const axis = useMemo(
+  const axisCurve = useMemo(
     () =>
-      new LineCurve3(
-        new Vector3(),
-        new Vector3(...shape.axis).clone().multiplyScalar(shape.length)
-      ),
-    [shape]
+      new LineCurve3(new Vector3(), axis.clone().multiplyScalar(shape.length)),
+    [axis, shape.length]
   );
 
   const helix = useMemo(
-    () => new Helix(axis, shape.radius, dates.range / dates.period),
-    [axis, dates.range, dates.period, shape.radius]
+    () => new Helix(axisCurve, shape.radius, dates.range / dates.period),
+    [axisCurve, dates.range, dates.period, shape.radius]
   );
 
   const individualEvents = useMemo(
@@ -109,8 +98,6 @@ export const Display = ({ events, onSelect }: Props) => {
     );
   }, [onSelect, individualEvents, hoveredEventId]);
 
-  const memoAxis = useMemo(() => new Vector3(...shape.axis), [shape.axis]);
-
   return (
     <Canvas onWheel={handleWheel}>
       <group position={[0, 0, -shape.length / 2]}>
@@ -137,7 +124,7 @@ export const Display = ({ events, onSelect }: Props) => {
                 start={startMs}
                 end={endMs}
                 range={rangeMs}
-                axis={memoAxis}
+                axis={axis}
                 division={Math.max(
                   Math.ceil((numberOfVertices * (startMs - endMs)) / rangeMs),
                   ribbon.minVertices
