@@ -1,7 +1,7 @@
 import ICAL from "ical.js";
 import { LineCurve3, Vector3 } from "three";
 import { Line, TrackballControls } from "@react-three/drei";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Helix } from "../utils/Helix";
 import { CameraLight } from "./CameraLight";
 import { convertToIndividualEvents } from "../utils/convertToIndividualEvents";
@@ -30,22 +30,32 @@ export const Display = ({ events, onSelect }: Props) => {
 
   const { numberOfVertices } = useControls(...vertexControl);
 
-  const shape = useControls(...shapeControl);
+  const [shape] = useControls(...shapeControl);
 
   const ribbon = useControls(...ribbonControl);
 
   const [dates] = useControls(...datesControl);
 
   const [period, setPeriod] = useState<number>(dates.period);
+  const [length, setLength] = useState<number>(shape.length);
+
+  const lerpRef = useRef({ period: dates.period, length: shape.length });
 
   useFrame(() => {
-    setPeriod((prev) => {
-      const newPeriod = (dates.period - prev) * 0.1 + prev;
+    const newPeriod =
+      (dates.period - lerpRef.current.period) * 0.1 + lerpRef.current.period;
+    const newLength =
+      (shape.length - lerpRef.current.length) * 0.1 + lerpRef.current.length;
 
-      return Math.abs(newPeriod - dates.period) < dates.period * 0.005
-        ? dates.period
-        : newPeriod;
-    });
+    if (newPeriod < dates.period * 0.001) {
+      setPeriod(dates.period);
+      setLength(shape.length);
+      lerpRef.current = { period: dates.period, length: shape.length };
+    } else {
+      setPeriod(newPeriod);
+      setLength(newLength);
+      lerpRef.current = { period: newPeriod, length: newLength };
+    }
   });
 
   const axis = useMemo(() => new Vector3(0, 0, 1), []);
@@ -63,9 +73,8 @@ export const Display = ({ events, onSelect }: Props) => {
   );
 
   const axisCurve = useMemo(
-    () =>
-      new LineCurve3(new Vector3(), axis.clone().multiplyScalar(shape.length)),
-    [axis, shape.length]
+    () => new LineCurve3(new Vector3(), axis.clone().multiplyScalar(length)),
+    [axis, length]
   );
 
   const helix = useMemo(
@@ -151,10 +160,7 @@ export const Display = ({ events, onSelect }: Props) => {
       </group>
       <color attach="background" args={[global.background]} />
       <ambientLight intensity={0.1} color="#FFFFFF" />
-      <fog
-        attach="fog"
-        args={[global.background, 0, shape.length / 2 / Math.SQRT2]}
-      />
+      <fog attach="fog" args={[global.background, 0, length / 2]} />
       <CameraLight />
       <TrackballControls noZoom />
     </>

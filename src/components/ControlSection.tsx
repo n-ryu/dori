@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./ControlSection.css";
 import dayjs from "dayjs";
 import { Leva, useControls } from "leva";
-import { datesControl } from "../controls/controls";
+import { datesControl, shapeControl } from "../controls/controls";
 import { Toggle } from "./Toggle";
 
 export const ControlSection = () => {
@@ -10,6 +10,7 @@ export const ControlSection = () => {
   const [showLeva, setShowLeva] = useState<boolean>(false);
 
   const [{ today }, setDates] = useControls(...datesControl);
+  const [_, setShape] = useControls(...shapeControl);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
@@ -24,16 +25,40 @@ export const ControlSection = () => {
       <span>{dayjs(today).format("YYYY-MM-DD HH:mm:ss")}</span>
       <label className="label">Period</label>
       <div className="buttons">
-        <button className="period" onClick={() => setDates({ period: 365 })}>
+        <button
+          className="period"
+          onClick={() => {
+            setDates({ period: 365 });
+            setShape({ length: 50 / 10 });
+          }}
+        >
           Year
         </button>
-        <button className="period" onClick={() => setDates({ period: 30 })}>
+        <button
+          className="period"
+          onClick={() => {
+            setDates({ period: 30 });
+            setShape({ length: 50 / 2 });
+          }}
+        >
           Month
         </button>
-        <button className="period" onClick={() => setDates({ period: 7 })}>
+        <button
+          className="period"
+          onClick={() => {
+            setDates({ period: 7 });
+            setShape({ length: 50 });
+          }}
+        >
           Week
         </button>
-        <button className="period" onClick={() => setDates({ period: 1 })}>
+        <button
+          className="period"
+          onClick={() => {
+            setDates({ period: 1 });
+            setShape({ length: 50 * 3 });
+          }}
+        >
           Day
         </button>
       </div>

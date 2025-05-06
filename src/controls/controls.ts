@@ -14,10 +14,10 @@ export const vertexControl = [
 
 export const shapeControl = [
   "shape",
-  {
+  () => ({
     radius: 2,
     length: 50,
-  },
+  }),
 ] as const;
 
 export const ribbonControl = [
