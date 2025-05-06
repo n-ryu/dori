@@ -160,7 +160,7 @@ export const Display = ({ events, onSelect }: Props) => {
       </group>
       <color attach="background" args={[global.background]} />
       <ambientLight intensity={0.1} color="#FFFFFF" />
-      <fog attach="fog" args={[global.background, 0, length / 2]} />
+      <fog attach="fog" args={[global.background, 0, 20]} />
       <CameraLight />
       <TrackballControls noZoom />
     </>
