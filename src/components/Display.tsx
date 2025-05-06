@@ -19,6 +19,7 @@ import {
   vertexControl,
 } from "../controls/controls";
 import { useFrame } from "@react-three/fiber";
+import { TodayIndicator } from "./TodayIndicator";
 
 interface Props {
   events: ICAL.Event[];
@@ -114,50 +115,65 @@ export const Display = ({ events, onSelect }: Props) => {
 
   return (
     <>
-      <group>
-        <Line
-          color="#AAAAAA"
-          lineWidth={1}
-          fog
-          points={new Array(numberOfVertices)
-            .fill(0)
-            .map((_, i) => helix.getPoint(i / numberOfVertices - 0.5))}
+      <Line
+        color="#AAAAAA"
+        lineWidth={1}
+        fog
+        points={new Array(numberOfVertices)
+          .fill(0)
+          .map((_, i) => helix.getPoint(i / numberOfVertices - 0.5))}
+      />
+      {individualEvents.map(
+        ({ event, startDate, endDate, offset, recurrenceId }) => {
+          const rangeMs = dates.range * 1000 * 60 * 60 * 24;
+          const startMs =
+            startDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
+          const endMs =
+            endDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
+          return (
+            <EventRibbon
+              key={event.uid + recurrenceId}
+              helix={helix}
+              color={event.color}
+              start={startMs}
+              end={endMs}
+              range={rangeMs}
+              axis={axis}
+              division={Math.max(
+                Math.ceil((numberOfVertices * (startMs - endMs)) / rangeMs),
+                ribbon.minVertices
+              )}
+              thickness={ribbon.thickness}
+              height={ribbon.height}
+              offsetH={-ribbon.height * (offset + 0.5) - offset * ribbon.gap}
+              selected={event.uid === hoveredEventId?.uid}
+              onPointerEnter={() => {
+                setHoveredEventId({ uid: event.uid, recurrenceId });
+              }}
+              onPointerLeave={() => {
+                setHoveredEventId(undefined);
+              }}
+            />
+          );
+        }
+      )}
+      <mesh
+        position={[shape.radius + 0.21, 0, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+      >
+        <coneGeometry args={[0.07, 0.2]} />
+        <meshPhongMaterial
+          color="#ff0000"
+          emissive="#ff0000"
+          emissiveIntensity={0.2}
         />
-        {individualEvents.map(
-          ({ event, startDate, endDate, offset, recurrenceId }) => {
-            const rangeMs = dates.range * 1000 * 60 * 60 * 24;
-            const startMs =
-              startDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
-            const endMs =
-              endDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
-            return (
-              <EventRibbon
-                key={event.uid + recurrenceId}
-                helix={helix}
-                color={event.color}
-                start={startMs}
-                end={endMs}
-                range={rangeMs}
-                axis={axis}
-                division={Math.max(
-                  Math.ceil((numberOfVertices * (startMs - endMs)) / rangeMs),
-                  ribbon.minVertices
-                )}
-                thickness={ribbon.thickness}
-                height={ribbon.height}
-                offsetH={-ribbon.height * (offset + 0.5) - offset * ribbon.gap}
-                selected={event.uid === hoveredEventId?.uid}
-                onPointerEnter={() => {
-                  setHoveredEventId({ uid: event.uid, recurrenceId });
-                }}
-                onPointerLeave={() => {
-                  setHoveredEventId(undefined);
-                }}
-              />
-            );
-          }
-        )}
-      </group>
+      </mesh>
+      <TodayIndicator
+        range={dates.range}
+        today={dates.today}
+        helix={helix}
+        radius={shape.radius}
+      />
       <color attach="background" args={[global.background]} />
       <ambientLight intensity={0.1} color="#FFFFFF" />
       <fog attach="fog" args={[global.background, 0, 20]} />
