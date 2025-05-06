@@ -55,22 +55,22 @@ export const createRibbonGeometry = ({
     if (i < division - 1) {
       const base = i * 4;
       return [
-        [base, base + 5, base + 4],
-        [base, base + 1, base + 5],
-        [base + 1, base + 6, base + 5],
-        [base + 1, base + 2, base + 6],
-        [base + 2, base + 7, base + 6],
-        [base + 2, base + 3, base + 7],
-        [base + 3, base + 4, base + 7],
-        [base + 3, base, base + 4],
+        [base, base + 4, base + 5],
+        [base, base + 5, base + 1],
+        [base + 1, base + 5, base + 6],
+        [base + 1, base + 6, base + 2],
+        [base + 2, base + 6, base + 7],
+        [base + 2, base + 7, base + 3],
+        [base + 3, base + 7, base + 4],
+        [base + 3, base + 4, base],
       ].flat();
     } else return [];
   });
 
   const last = division * 4 - 4;
-  const indices = [0, 2, 1, 0, 3, 2]
+  const indices = [0, 1, 2, 0, 2, 3]
     .concat(sideIndices)
-    .concat([last, last + 1, last + 2, last, last + 2, last + 3]);
+    .concat([last, last + 2, last + 1, last, last + 3, last + 2]);
 
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
