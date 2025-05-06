@@ -1,14 +1,10 @@
 .wrapper {
   margin: 10px;
   font-size: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: min-content auto;
+  column-gap: 10px;
+  row-gap: 5px;
   align-items: center;
 }
 
@@ -16,6 +12,21 @@
   font-weight: 500;
 }
 
+.buttons {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+}
+
 .period {
   font-size: 8px;
+  width: 100%;
+  background: #dddddd;
+  border-radius: 5px;
+  border: none;
+  padding: 3px;
+  display: block;
+  cursor: pointer;
 }
