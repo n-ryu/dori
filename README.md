@@ -1,3 +1,7 @@
 # dori
 
-An experimental calendar using helical / orbital time representation.
+An experimental calendar using helical time representation.
+
+```bash
+pnpm dev
+```
