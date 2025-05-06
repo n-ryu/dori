@@ -4,16 +4,13 @@ import { Line, TrackballControls } from "@react-three/drei";
 import { useCallback, useMemo, useState, WheelEvent } from "react";
 import { Helix } from "../utils/Helix";
 import { CameraLight } from "./CameraLight";
-import { createRibbonGeometry } from "../utils/createRibbonGeometry";
 import { convertToIndividualEvents } from "../utils/convertToIndividualEvents";
 import { computeOffset } from "../utils/computeOffset";
 import { useControls } from "leva";
 import dayjs from "dayjs";
 import { uuidToColor } from "../utils/uuidToColor";
 import { Canvas } from "@react-three/fiber";
-
-const normalize = (target: number, upper: number, lower: number) =>
-  (target - lower) / (upper - lower);
+import { EventRibbon } from "./EventRibbon";
 
 interface Props {
   events: ICAL.Event[];
@@ -62,8 +59,8 @@ export const Display = ({ events }: Props) => {
   const axis = useMemo(
     () =>
       new LineCurve3(
-        new Vector3(...shape.axis).clone().multiplyScalar(shape.length / 2),
-        new Vector3(...shape.axis).clone().multiplyScalar(-shape.length / 2)
+        new Vector3(),
+        new Vector3(...shape.axis).clone().multiplyScalar(shape.length)
       ),
     [shape]
   );
@@ -88,43 +85,9 @@ export const Display = ({ events }: Props) => {
     [events, start, end]
   );
 
-  const eventGeometries = useMemo(
-    () =>
-      individualEvents.map(({ offset, ...event }) => {
-        const eventStart = normalize(
-          event.startDate.toJSDate().getTime(),
-          start.getTime(),
-          end.getTime()
-        );
-        const eventEnd = normalize(
-          event.endDate.toJSDate().getTime(),
-          start.getTime(),
-          end.getTime()
-        );
-        const NUMBER = Math.max(
-          Math.ceil(numberOfVertices * (eventEnd - eventStart)),
-          ribbon.minVertices
-        );
-
-        const geometry = createRibbonGeometry({
-          helix,
-          t1: eventStart,
-          t2: eventEnd,
-          axis: new Vector3(...shape.axis),
-          division: NUMBER,
-          thickness: ribbon.thickness,
-          height: ribbon.height,
-          offsetH: -ribbon.height * (offset + 0.5) - offset * ribbon.gap,
-        });
-
-        return { ...event, geometry };
-      }),
-    [individualEvents, helix, start, end, numberOfVertices, ribbon, shape.axis]
-  );
-
   const handleWheel = useCallback(
     (e: WheelEvent) => {
-      setDates({ today: getDates("today") + e.deltaY * 1000 * 30 });
+      setDates({ today: getDates("today") + e.deltaY * 1000 * 60 });
     },
     [setDates, getDates]
   );
@@ -135,13 +98,15 @@ export const Display = ({ events }: Props) => {
   }>();
   const hoveredEvent = useMemo(
     () =>
-      eventGeometries.find(
+      individualEvents.find(
         ({ event, recurrenceId }) =>
           event.uid === hoveredEventId?.uid &&
           recurrenceId === hoveredEventId?.recurrenceId
       ),
-    [eventGeometries, hoveredEventId]
+    [individualEvents, hoveredEventId]
   );
+
+  const memoAxis = useMemo(() => new Vector3(...shape.axis), [shape.axis]);
 
   return (
     <>
@@ -177,33 +142,41 @@ export const Display = ({ events }: Props) => {
         )}
       </div>
       <Canvas onWheel={handleWheel}>
-        <Line
-          color="#AAAAAA"
-          lineWidth={1}
-          fog
-          points={new Array(numberOfVertices)
-            .fill(0)
-            .map((_, i) => helix.getPoint(i / numberOfVertices))}
-        />
-        {eventGeometries.map(({ geometry, event, recurrenceId }) => (
-          <mesh
-            key={event.uid + recurrenceId}
-            geometry={geometry}
-            onPointerEnter={() => {
-              setHoveredEventId({ uid: event.uid, recurrenceId });
-            }}
-            onPointerLeave={() => {
-              setHoveredEventId(undefined);
-            }}
-          >
-            <meshPhongMaterial
-              color={event.color}
-              emissive={event.color}
-              emissiveIntensity={hoveredEventId?.uid === event.uid ? 0.5 : 0}
-              flatShading
-            />
-          </mesh>
-        ))}
+        <group position={[0, 0, -shape.length / 2]}>
+          <Line
+            color="#AAAAAA"
+            lineWidth={1}
+            fog
+            points={new Array(numberOfVertices)
+              .fill(0)
+              .map((_, i) => helix.getPoint(i / numberOfVertices))}
+          />
+          {individualEvents.map(
+            ({ event, startDate, endDate, offset, recurrenceId }) => {
+              const rangeMs = dates.range * 1000 * 60 * 60 * 24;
+              const startMs =
+                startDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
+              const endMs =
+                endDate.toJSDate().getTime() - (dates.today - rangeMs / 2);
+              return (
+                <EventRibbon
+                  key={event.uid + recurrenceId}
+                  helix={helix}
+                  start={startMs}
+                  end={endMs}
+                  range={rangeMs}
+                  axis={memoAxis}
+                  division={Math.max(
+                    Math.ceil((numberOfVertices * (startMs - endMs)) / rangeMs),
+                    ribbon.minVertices
+                  )}
+                  thickness={ribbon.thickness}
+                  height={ribbon.height}
+                />
+              );
+            }
+          )}
+        </group>
         <color attach="background" args={[global.background]} />
         <ambientLight intensity={0.1} color="#FFFFFF" />
         <fog

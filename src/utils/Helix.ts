@@ -51,4 +51,8 @@ export class Helix extends Curve<Vector3> {
 
     return [normal, binormal];
   }
+
+  getRotation(t: number) {
+    return 2 * Math.PI * t * this.numberOfRotations;
+  }
 }
