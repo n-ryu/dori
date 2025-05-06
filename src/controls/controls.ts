@@ -8,7 +8,7 @@ export const globalControl = [
 export const vertexControl = [
   "vertex",
   {
-    numberOfVertices: 365 * 10,
+    numberOfVertices: 365 * 10 * 4,
   },
 ] as const;
 
@@ -26,7 +26,7 @@ export const ribbonControl = [
     height: 0.1,
     thickness: 0.01,
     gap: 0.01,
-    minVertices: 10,
+    minVertices: 50,
   },
 ] as const;
 

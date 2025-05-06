@@ -7,7 +7,7 @@ import { datesControl } from "../controls/controls";
 export const ControlSection = () => {
   const [now, setNow] = useState<Date>(new Date());
 
-  const [{ today }] = useControls(...datesControl);
+  const [{ today }, setDates, getDates] = useControls(...datesControl);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
@@ -23,6 +23,23 @@ export const ControlSection = () => {
       <div className="row">
         <label className="label">Look At</label>
         <span>{dayjs(today).format("YYYY-MM-DD HH:mm:ss")}</span>
+      </div>
+      <div className="row">
+        <label className="label">Period</label>
+        <div>
+          <button className="period" onClick={() => setDates({ period: 365 })}>
+            Year
+          </button>
+          <button className="period" onClick={() => setDates({ period: 30 })}>
+            Month
+          </button>
+          <button className="period" onClick={() => setDates({ period: 7 })}>
+            Week
+          </button>
+          <button className="period" onClick={() => setDates({ period: 1 })}>
+            Day
+          </button>
+        </div>
       </div>
     </div>
   );
